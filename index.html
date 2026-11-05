@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>دليل نظام SIS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#1f2a37;--mute:#5b6675;--teal:#0f6e66;--line:#dde3ea;--acc:#b45309}
+@media (prefers-color-scheme:dark){:root{--bg:#12171d;--card:#1b222b;--ink:#e6ebf1;--mute:#9aa6b4;--teal:#3fb3a6;--line:#2b3440;--acc:#f59e0b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Kufi Arabic",system-ui,sans-serif;line-height:1.7}
+.wrap{max-width:720px;margin:0 auto;padding:28px 16px 40px}
+.org{color:var(--mute);font-size:14px}
+h1{font-size:26px;margin:4px 0 6px}
+.lead{color:var(--mute);margin:0 0 22px}
+.upd{background:var(--card);border:1px solid var(--line);border-right:4px solid var(--acc);border-radius:10px;padding:12px 14px;margin-bottom:22px;font-size:14px}
+.upd b{color:var(--acc)}
+a.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:12px;color:inherit;text-decoration:none}
+a.card:hover{border-color:var(--teal)}
+a.card h2{font-size:18px;margin:0 0 2px;color:var(--teal)}
+a.card p{margin:0;color:var(--mute);font-size:14px}
+.foot{color:var(--mute);font-size:13px;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="org">كلية البوليتكنك الناصرية</div>
+  <h1>دليل نظام SIS</h1>
+  <p class="lead">مشاكل وحلول، وطريقة الاستخدام، مرتبة حسب تبويبات كل نظام. احفظ هذا الرابط، فهو ثابت ويُحدَّث باستمرار.</p>
+  <div class="upd" id="upd">آخر تحديث: …</div>
+  <a class="card" href="sis.html"><h2>نظام معلومات الطالب (SIS)</h2><p>التسجيل، الترحيل، النقل والاستضافة، الهويات، البرنامج الدراسي، الشعب والجدول</p></a>
+  <a class="card" href="exam.html"><h2>نظام اللجنة الامتحانية</h2><p>قوائم الدرجات، الفترات الامتحانية، التدقيق والموافقات، المعالجة، الترحيل</p></a>
+  <a class="card" href="iq.html"><h2>منصة IQ Learn</h2><p>الدخول، رفع المحتوى، ظهور الطلبة</p></a>
+  <p class="foot">داخل كل دليل: فعّل «الجديد فقط» لترى ما أُضيف في آخر تحديث.</p>
+</div>
+<script>
+fetch('version.json?t='+Date.now()).then(function(r){return r.json()}).then(function(v){
+  var u=v.updates[v.updates.length-1];
+  document.getElementById('upd').innerHTML='<b>آخر تحديث: '+u[0]+'</b><br>'+u[1];
+}).catch(function(){document.getElementById('upd').style.display='none'});
+</script>
+</body>
+</html>
