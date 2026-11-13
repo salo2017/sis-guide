@@ -236,6 +236,32 @@ header.top{padding-top:22px}
   .systabs .ts{display:none}
   .brand .bs{display:none}
 }
+
+/* numbered, collapsible problem cards */
+article{padding:0;overflow:hidden}
+article details>summary{list-style:none;cursor:pointer;display:flex;align-items:flex-start;gap:12px;padding:13px 16px}
+article details>summary::-webkit-details-marker{display:none}
+article details>summary:hover{background:var(--bg)}
+article details>summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.qn{flex:0 0 auto;min-width:30px;height:30px;padding:0 6px;border-radius:999px;display:grid;place-items:center;background:var(--st,var(--accent));color:var(--surface);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;margin-top:1px}
+.qb{flex:1;min-width:0}
+.qtop{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:3px}
+.qtop:empty{display:none}
+article .q{margin:0;font-size:15px}
+.chev2{flex:0 0 auto;color:var(--muted);font-size:14px;margin-top:5px;transition:transform .18s}
+article details[open] .chev2{transform:rotate(180deg)}
+article details[open]>summary{border-bottom:1px dashed var(--line)}
+.qbody{padding:12px 16px 16px;padding-inline-start:58px}
+.qbody .meta{margin-bottom:10px}
+.sth{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;margin:8px 0 -2px;color:var(--ink)}
+.sth:first-child{margin-top:0}
+.sth .dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.sth[data-o="0"] .dot{background:var(--ok)} .sth[data-o="1"] .dot{background:var(--part)} .sth[data-o="2"] .dot{background:var(--no)} .sth[data-o="3"] .dot{background:var(--sug)}
+.sth .c{font-weight:400;color:var(--muted);font-size:12.5px}
+.xall{margin-inline-start:auto;font:inherit;font-size:12.5px;color:var(--accent);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:2px 12px;cursor:pointer}
+.xall:hover{border-color:var(--accent)}
+.xall:focus-visible{outline:2px solid var(--accent)}
+@media (max-width:640px){.qbody{padding-inline-start:16px}}
 </style>
 
 <div class="appbar"><div class="wrap">
@@ -480,15 +506,21 @@ function render(){
 }
 
 const PLAY = `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`;
-function card(d, T, here){
+const ORD = {"محلولة": 0, "حل جزئي": 1, "بلا حل": 2};
+const ORDNAME = ["محلولة", "حل جزئي", "بلا حل", "أخرى (حل مقترح)"];
+const ordOf = d => (d.status in ORD ? ORD[d.status] : 3);
+const OPENED = new Set();
+function card(d, T, here, k){
   const others = d.tabs.filter(t => t !== here).map(t => TABNAME[t]);
   const ext = d.elsewhere.map(e => `${e.sys} (${e.tab})`);
   const also = [...others, ...ext];
-  return `<article data-s="${esc(d.status)}" class="${d.b ? "isnew" : ""}">
-    <div class="meta">${pill(d.b)}${d.kind === "info" && SYS.labels ? "" : `<span class="pill ${ST[d.status]}">${esc(d.status)}</span>`}
-      <span class="num">#${d.n}</span><span class="num"><bdi>${esc(d.date.split(" ")[0])}</bdi> · <bdi>${esc(d.date.split(" ").slice(1).join(" "))}</bdi></span><span>${esc(d.group)}</span>
+  const open = T.length > 0 || OPENED.has(d.n);
+  const stp = d.kind === "info" && SYS.labels ? "" : `<span class="pill ${ST[d.status]}">${esc(d.status)}</span>`;
+  return `<article data-s="${esc(d.status)}" class="${d.b ? "isnew" : ""}"><details data-n="${d.n}"${open ? " open" : ""}>
+    <summary><span class="qn">${k}</span><span class="qb"><span class="qtop">${stp}${pill(d.b)}</span><span class="q">${highlight(d.problem, T)}</span></span><span class="chev2" aria-hidden="true">▾</span></summary>
+    <div class="qbody">
+    <div class="meta"><span class="num">#${d.n}</span><span class="num"><bdi>${esc(d.date.split(" ")[0])}</bdi> · <bdi>${esc(d.date.split(" ").slice(1).join(" "))}</bdi></span><span>${esc(d.group)}</span>
       ${d.source ? `<span>المصدر: ${esc(d.source)}</span>` : ""}</div>
-    <p class="q">${highlight(d.problem, T)}</p>
     ${d.error ? `<p class="err">${highlight(d.error, T)}</p>` : ""}
     <p class="sol"><span class="k">${d.kind === "info" ? "التوضيح" : "الحل"}: </span>${highlight(d.solution, T)}</p>
     ${(d.vid || []).map(v => `<div class="vid"><div class="vh"><span class="vt">${PLAY} من شرح «${esc(v.name)}»، ${esc(v.step)}</span>
@@ -496,6 +528,7 @@ function card(d, T, here){
       <p>${highlight(v.text, T)}</p>${v.note ? `<p class="vn">${highlight(v.note, T)}</p>` : ""}</div>`).join("")}
     ${d.notes ? `<p class="note"><span class="k">ملاحظة: </span>${highlight(d.notes, T)}</p>` : ""}
     ${also.length ? `<p class="also">يظهر أيضاً في: <b>${esc(also.join(" · "))}</b></p>` : ""}
+    </div></details>
   </article>`;
 }
 function renderIssues(base, raw, T, isOther){
@@ -503,14 +536,37 @@ function renderIssues(base, raw, T, isOther){
   let html = "", shown = 0;
   for (const tab of tabsToShow){
     // in "all" mode each problem is listed once, under its first tab in this system
-    const items = base.filter(d => curTab ? d.tabs.includes(tab) : d.tabs[0] === tab);
+    let items = base.filter(d => curTab ? d.tabs.includes(tab) : d.tabs[0] === tab);
     if (!items.length) continue;
     shown += items.length;
-    html += `<section class="group"><h2>${esc(TABNAME[tab])} <span>${items.length}</span></h2><div class="cards">${items.map(d => card(d, T, tab)).join("")}</div></section>`;
+    let body = "", k = 0;
+    if (isOther){
+      body = items.map(d => card(d, T, tab, ++k)).join("");
+    } else {
+      // problems: numbered and grouped by status: solved, partial, unsolved, then the rest
+      items = items.map((d, i) => [d, i]).sort((x, y) => ordOf(x[0]) - ordOf(y[0]) || x[1] - y[1]).map(x => x[0]);
+      for (let o = 0; o < 4; o++){
+        const part = items.filter(d => ordOf(d) === o);
+        if (!part.length) continue;
+        body += `<div class="sth" data-o="${o}"><span class="dot"></span>${ORDNAME[o]} <span class="c">${part.length}</span></div>` + part.map(d => card(d, T, tab, ++k)).join("");
+      }
+    }
+    const allOpen = T.length > 0 || items.every(d => OPENED.has(d.n));
+    html += `<section class="group"><h2>${esc(TABNAME[tab])} <span>${items.length}</span><button type="button" class="xall" data-open="${allOpen ? 1 : 0}">${allOpen ? "إغلاق الكل" : "فتح الكل"}</button></h2><div class="cards">${body}</div></section>`;
   }
   $("#count").textContent = `يظهر ${shown} من ${DATA.length}`;
   $("#list").innerHTML = html || `<div class="empty">لا توجد ${isOther ? LB.other : "مشكلة"}${raw ? ` فيها «${esc(raw)}»` : ""} في ${curTab ? "تبويب «" + esc(TABNAME[curTab]) + "»" : "هذا الملف"}${$("#onlynew").checked ? " ضمن الجديد" : ""}.</div>`;
 }
+document.addEventListener("toggle", e => {
+  const dt = e.target; if (!dt.matches || !dt.matches("details[data-n]")) return;
+  const n = +dt.dataset.n; if (dt.open) OPENED.add(n); else OPENED.delete(n);
+}, true);
+document.addEventListener("click", e => {
+  const b = e.target.closest(".xall"); if (!b) return;
+  const open = b.dataset.open !== "1";
+  b.closest("section").querySelectorAll("details[data-n]").forEach(dt => { dt.open = open; const n = +dt.dataset.n; if (open) OPENED.add(n); else OPENED.delete(n); });
+  b.dataset.open = open ? 1 : 0; b.textContent = open ? "إغلاق الكل" : "فتح الكل";
+});
 function renderGuides(gh, raw, T){
   const list = gh.filter(x => (!curTab || x.g.tabs.includes(curTab)) && x.secs.length);
   const shownSecs = list.reduce((a, x) => a + x.secs.length, 0);
