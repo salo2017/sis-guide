@@ -206,6 +206,10 @@ nav.cats .allbtn{margin-bottom:4px}
 
 /* top system tabs */
 html,body{margin:0}
+/* page scrolls inside body so the scrollbar sits on the left (RTL) */
+html{height:100%;overflow:hidden}
+body{height:100%;overflow-y:auto;overflow-x:hidden;direction:rtl}
+body:focus{outline:none}
 .appbar{background:linear-gradient(135deg,#093F3C 0%,#0E6B66 55%,#16877F 100%);color:#fff;padding:14px 0 0;box-shadow:inset 0 -1px 0 rgba(0,0,0,.08)}
 .brand{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:14px;font-weight:600;color:#E3F3F1;text-decoration:none;width:max-content}
 a.brand:hover .bt{text-decoration:underline}
@@ -365,7 +369,7 @@ function setup(){
     const t = TABI[s.id] || [s.title, "", ""];
     const ext = /^https?:/.test(s.href) ? ' target="_blank" rel="noopener"' : "";
     const inner = `<span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${t[2]}</svg></span><span><span class="tt">${esc(t[0])}</span><span class="ts">${esc(t[1])}</span></span>`;
-    return s.cur ? `<a aria-current="page" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">${inner}</a>` : `<a href="${esc(s.href)}"${ext}>${inner}</a>`;
+    return s.cur ? `<a aria-current="page" href="#" onclick="document.body.scrollTo({top:0,behavior:'smooth'});return false">${inner}</a>` : `<a href="${esc(s.href)}"${ext}>${inner}</a>`;
   }).join("");
   const bIn = `<span class="lg">SIS</span><span class="bt">دليل مستخدمي النظام</span><span class="bs">· كلية البوليتكنك الناصرية</span>`;
   $("#brand").outerHTML = SYS.homehref ? `<a class="brand" href="${esc(SYS.homehref)}">${bIn}</a>` : `<div class="brand">${bIn}</div>`;
@@ -376,7 +380,7 @@ function setup(){
     if (gb){ const g = gb.dataset.grp; OPEN[g] = gb.getAttribute("aria-expanded") === "false"; render(); save(); return; }
     const b = e.target.closest(".cat"); if (!b) return;
     curTab = b.dataset.c; autoView = true; render(); save();
-    if (window.innerWidth > 820) window.scrollTo({top: $(".layout").offsetTop - 70, behavior: "smooth"});
+    if (window.innerWidth > 820) document.body.scrollTo({top: $(".layout").offsetTop - 70, behavior: "smooth"});
   });
   document.addEventListener("click", e => { const b = e.target.closest(".segb"); if (b){ view = b.dataset.v; render(); save(); } });
   // update log
@@ -536,5 +540,9 @@ function renderGuides(gh, raw, T){
   }));
 }
 setup(); render(); fromHash();
+
+/* keyboard scrolling (PageDown, arrows, Space) works on the body scroller */
+document.body.tabIndex = -1;
+if (!document.activeElement || document.activeElement === document.body) document.body.focus({preventScroll: true});
 </script>
 </html>
